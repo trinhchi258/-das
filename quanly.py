@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, simpledialog
 import csv
 from datetime import datetime
 
@@ -226,28 +226,39 @@ class SportMatchApp:
         self.admin_frame = tk.Frame(self.master)
         self.admin_frame.pack(pady=20)
 
-        tk.Label(self.admin_frame, text="Quản Lý Đội Bóng", font=("Arial", 16)).grid(row=0, columnspan=2)
+        tk.Label(self.admin_frame, text="Quản Lý Đội Bóng", font=("Arial", 16)).grid(row=0, columnspan=4)
 
         # Nhập tên đội
         tk.Label(self.admin_frame, text="Tên Đội:").grid(row=1, column=0)
         self.team_name_entry = tk.Entry(self.admin_frame)
         self.team_name_entry.grid(row=1, column=1)
 
+        # Nhập tên cầu thủ
+        tk.Label(self.admin_frame, text="Tên Cầu Thủ:").grid(row=1, column=2)
+        self.player_name_entry = tk.Entry(self.admin_frame)
+        self.player_name_entry.grid(row=1, column=3)
+
         self.add_team_button = tk.Button(self.admin_frame, text="Thêm Đội", command=self.add_team)
-        self.add_team_button.grid(row=1, column=2)
+        self.add_team_button.grid(row=2, column=0)
 
         self.remove_team_button = tk.Button(self.admin_frame, text="Xóa Đội", command=self.remove_team)
-        self.remove_team_button.grid(row=1, column=3)
+        self.remove_team_button.grid(row=2, column=1)
+
+        self.add_player_button = tk.Button(self.admin_frame, text="Thêm Cầu Thủ", command=self.add_player)
+        self.add_player_button.grid(row=2, column=2)
+
+        self.remove_player_button = tk.Button(self.admin_frame, text="Xóa Cầu Thủ", command=self.remove_player)
+        self.remove_player_button.grid(row=2, column=3)
 
         self.schedule_match_button = tk.Button(self.admin_frame, text="Lên Lịch Trận Đấu", command=self.schedule_match)
-        self.schedule_match_button.grid(row=2, column=0, columnspan=4)
+        self.schedule_match_button.grid(row=3, column=0, columnspan=4)
 
         self.view_results_button = tk.Button(self.admin_frame, text="Xem Kết Quả", command=self.view_results)
-        self.view_results_button.grid(row=3, column=0, columnspan=4)
+        self.view_results_button.grid(row=4, column=0, columnspan=4)
 
         # Tạo một danh sách các trận đấu
-        self.matches_listbox = tk.Listbox(self.admin_frame, width=50)
-        self.matches_listbox.grid(row=4, columnspan=4)
+        self.matches_listbox = tk.Listbox(self.admin_frame, width=80)
+        self.matches_listbox.grid(row=5, columnspan=4)
 
         self.update_matches_listbox()
 
@@ -258,6 +269,7 @@ class SportMatchApp:
             self.sport_match.add_team(team)
             messagebox.showinfo("Thành Công", f"Đội {team_name} đã được thêm thành công!")
             self.team_name_entry.delete(0, tk.END)
+            self.update_matches_listbox()
         else:
             messagebox.showerror("Lỗi", "Vui lòng nhập tên đội.")
 
@@ -269,14 +281,57 @@ class SportMatchApp:
                 self.sport_match.remove_team(team_to_remove)
                 messagebox.showinfo("Thành Công", f"Đội {team_name} đã được xóa thành công!")
                 self.team_name_entry.delete(0, tk.END)
+                self.update_matches_listbox()
             else:
                 messagebox.showerror("Lỗi", f"Đội {team_name} không tồn tại.")
         else:
             messagebox.showerror("Lỗi", "Vui lòng nhập tên đội.")
 
+    def add_player(self):
+        player_name = self.player_name_entry.get()
+        team_name = self.team_name_entry.get()
+        
+        if player_name and team_name:
+            team = next((team for team in self.sport_match.teams if team.team_name == team_name), None)
+            if team:
+                # Nhập thông tin cầu thủ
+                player_age = simpledialog.askinteger("Nhập Tuổi", "Tuổi của cầu thủ:")
+                player_gender = simpledialog.askstring("Nhập Giới Tính", "Giới tính của cầu thủ (Nam/Nữ):")
+                player_contact = simpledialog.askstring("Nhập Thông Tin Liên Hệ", "Thông tin liên hệ của cầu thủ:")
+                player_number = simpledialog.askinteger("Nhập Số Áo", "Số áo của cầu thủ:")
+                player_position = simpledialog.askstring("Nhập Vị Trí", "Vị trí cầu thủ:")
+                
+                player = Player(player_name, player_age, player_gender, player_contact, player_number, player_position)
+                team.add_person(player)
+                messagebox.showinfo("Thành Công", f"Cầu thủ {player_name} đã được thêm vào đội {team_name}.")
+                self.player_name_entry.delete(0, tk.END)
+            else:
+                messagebox.showerror("Lỗi", f"Đội {team_name} không tồn tại.")
+        else:
+            messagebox.showerror("Lỗi", "Vui lòng nhập tên cầu thủ và tên đội.")
+
+    def remove_player(self):
+        player_name = self.player_name_entry.get()
+        team_name = self.team_name_entry.get()
+        
+        if player_name and team_name:
+            team = next((team for team in self.sport_match.teams if team.team_name == team_name), None)
+            if team:
+                player_to_remove = next((player for player in team.persons if player.name == player_name), None)
+                if player_to_remove:
+                    team.remove_person(player_to_remove)
+                    messagebox.showinfo("Thành Công", f"Cầu thủ {player_name} đã được xóa khỏi đội {team_name}.")
+                    self.player_name_entry.delete(0, tk.END)
+                else:
+                    messagebox.showerror("Lỗi", f"Cầu thủ {player_name} không tồn tại trong đội {team_name}.")
+            else:
+                messagebox.showerror("Lỗi", f"Đội {team_name} không tồn tại.")
+        else:
+            messagebox.showerror("Lỗi", "Vui lòng nhập tên cầu thủ và tên đội.")
+
     def schedule_match(self):
         team1_name = self.team_name_entry.get()
-        team2_name = tk.simpledialog.askstring("Nhập Tên Đội 2", "Tên Đội 2:")
+        team2_name = simpledialog.askstring("Nhập Tên Đội 2", "Tên Đội 2:")
         
         if team1_name and team2_name:
             team1 = next((team for team in self.sport_match.teams if team.team_name == team1_name), None)
@@ -284,7 +339,7 @@ class SportMatchApp:
 
             if team1 and team2:
                 match_id = len(self.sport_match.matches) + 1  # Tạo ID cho trận đấu
-                referee_name = tk.simpledialog.askstring("Nhập Tên Trọng Tài", "Tên Trọng Tài:")
+                referee_name = simpledialog.askstring("Nhập Tên Trọng Tài", "Tên Trọng Tài:")
                 match = Match(match_id, team1, team2, referee_name, datetime.now())
                 self.sport_match.schedule_match(match)
                 messagebox.showinfo("Thành Công", f"Đã lên lịch trận đấu giữa {team1_name} và {team2_name}.")
