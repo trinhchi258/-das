@@ -233,144 +233,103 @@ class SportMatchApp:
         self.team_name_entry = tk.Entry(self.admin_frame)
         self.team_name_entry.grid(row=1, column=1)
 
-        # Nhập tên cầu thủ
-        tk.Label(self.admin_frame, text="Tên Cầu Thủ:").grid(row=1, column=2)
-        self.player_name_entry = tk.Entry(self.admin_frame)
-        self.player_name_entry.grid(row=1, column=3)
-
+        # Nút thêm đội
         self.add_team_button = tk.Button(self.admin_frame, text="Thêm Đội", command=self.add_team)
-        self.add_team_button.grid(row=2, column=0)
+        self.add_team_button.grid(row=1, column=2)
 
-        self.remove_team_button = tk.Button(self.admin_frame, text="Xóa Đội", command=self.remove_team)
-        self.remove_team_button.grid(row=2, column=1)
+        # Nút xem danh sách đội
+        self.view_teams_button = tk.Button(self.admin_frame, text="Xem Đội", command=self.view_teams)
+        self.view_teams_button.grid(row=1, column=3)
 
-        self.add_player_button = tk.Button(self.admin_frame, text="Thêm Cầu Thủ", command=self.add_player)
-        self.add_player_button.grid(row=2, column=2)
+        # Nút lên lịch trận đấu
+        tk.Label(self.admin_frame, text="Đội 1:").grid(row=2, column=0)
+        self.team1_entry = tk.Entry(self.admin_frame)
+        self.team1_entry.grid(row=2, column=1)
 
-        self.remove_player_button = tk.Button(self.admin_frame, text="Xóa Cầu Thủ", command=self.remove_player)
-        self.remove_player_button.grid(row=2, column=3)
+        tk.Label(self.admin_frame, text="Đội 2:").grid(row=3, column=0)
+        self.team2_entry = tk.Entry(self.admin_frame)
+        self.team2_entry.grid(row=3, column=1)
 
-        self.schedule_match_button = tk.Button(self.admin_frame, text="Lên Lịch Trận Đấu", command=self.schedule_match)
-        self.schedule_match_button.grid(row=3, column=0, columnspan=4)
+        tk.Label(self.admin_frame, text="Trọng Tài:").grid(row=4, column=0)
+        self.referee_entry = tk.Entry(self.admin_frame)
+        self.referee_entry.grid(row=4, column=1)
 
-        self.view_results_button = tk.Button(self.admin_frame, text="Xem Kết Quả", command=self.view_results)
-        self.view_results_button.grid(row=4, column=0, columnspan=4)
+        tk.Label(self.admin_frame, text="Ngày Trận Đấu:").grid(row=5, column=0)
+        self.match_date_entry = tk.Entry(self.admin_frame)
+        self.match_date_entry.grid(row=5, column=1)
 
-        # Tạo một danh sách các trận đấu
-        self.matches_listbox = tk.Listbox(self.admin_frame, width=80)
-        self.matches_listbox.grid(row=5, columnspan=4)
+        self.schedule_button = tk.Button(self.admin_frame, text="Lên Lịch Trận Đấu", command=self.schedule_match)
+        self.schedule_button.grid(row=6, columnspan=2)
 
-        self.update_matches_listbox()
+        # Nhập kết quả trận đấu
+        tk.Label(self.admin_frame, text="Kết Quả Đội 1:").grid(row=7, column=0)
+        self.team1_score_entry = tk.Entry(self.admin_frame)
+        self.team1_score_entry.grid(row=7, column=1)
+
+        tk.Label(self.admin_frame, text="Kết Quả Đội 2:").grid(row=8, column=0)
+        self.team2_score_entry = tk.Entry(self.admin_frame)
+        self.team2_score_entry.grid(row=8, column=1)
+
+        self.record_result_button = tk.Button(self.admin_frame, text="Ghi Kết Quả", command=self.record_result)
+        self.record_result_button.grid(row=9, columnspan=2)
 
     def add_team(self):
         team_name = self.team_name_entry.get()
         if team_name:
             team = Team(team_name)
             self.sport_match.add_team(team)
-            messagebox.showinfo("Thành Công", f"Đội {team_name} đã được thêm thành công!")
-            self.team_name_entry.delete(0, tk.END)
-            self.update_matches_listbox()
+            messagebox.showinfo("Thêm Đội", f"Đội {team_name} đã được thêm.")
+            self.team_name_entry.delete(0, tk.END)  # Xóa ô nhập sau khi thêm
         else:
             messagebox.showerror("Lỗi", "Vui lòng nhập tên đội.")
 
-    def remove_team(self):
-        team_name = self.team_name_entry.get()
-        if team_name:
-            team_to_remove = next((team for team in self.sport_match.teams if team.team_name == team_name), None)
-            if team_to_remove:
-                self.sport_match.remove_team(team_to_remove)
-                messagebox.showinfo("Thành Công", f"Đội {team_name} đã được xóa thành công!")
-                self.team_name_entry.delete(0, tk.END)
-                self.update_matches_listbox()
-            else:
-                messagebox.showerror("Lỗi", f"Đội {team_name} không tồn tại.")
-        else:
-            messagebox.showerror("Lỗi", "Vui lòng nhập tên đội.")
-
-    def add_player(self):
-        player_name = self.player_name_entry.get()
-        team_name = self.team_name_entry.get()
-        
-        if player_name and team_name:
-            team = next((team for team in self.sport_match.teams if team.team_name == team_name), None)
-            if team:
-                # Nhập thông tin cầu thủ
-                player_age = simpledialog.askinteger("Nhập Tuổi", "Tuổi của cầu thủ:")
-                player_gender = simpledialog.askstring("Nhập Giới Tính", "Giới tính của cầu thủ (Nam/Nữ):")
-                player_contact = simpledialog.askstring("Nhập Thông Tin Liên Hệ", "Thông tin liên hệ của cầu thủ:")
-                player_number = simpledialog.askinteger("Nhập Số Áo", "Số áo của cầu thủ:")
-                player_position = simpledialog.askstring("Nhập Vị Trí", "Vị trí cầu thủ:")
-                
-                player = Player(player_name, player_age, player_gender, player_contact, player_number, player_position)
-                team.add_person(player)
-                messagebox.showinfo("Thành Công", f"Cầu thủ {player_name} đã được thêm vào đội {team_name}.")
-                self.player_name_entry.delete(0, tk.END)
-            else:
-                messagebox.showerror("Lỗi", f"Đội {team_name} không tồn tại.")
-        else:
-            messagebox.showerror("Lỗi", "Vui lòng nhập tên cầu thủ và tên đội.")
-
-    def remove_player(self):
-        player_name = self.player_name_entry.get()
-        team_name = self.team_name_entry.get()
-        
-        if player_name and team_name:
-            team = next((team for team in self.sport_match.teams if team.team_name == team_name), None)
-            if team:
-                player_to_remove = next((player for player in team.persons if player.name == player_name), None)
-                if player_to_remove:
-                    team.remove_person(player_to_remove)
-                    messagebox.showinfo("Thành Công", f"Cầu thủ {player_name} đã được xóa khỏi đội {team_name}.")
-                    self.player_name_entry.delete(0, tk.END)
-                else:
-                    messagebox.showerror("Lỗi", f"Cầu thủ {player_name} không tồn tại trong đội {team_name}.")
-            else:
-                messagebox.showerror("Lỗi", f"Đội {team_name} không tồn tại.")
-        else:
-            messagebox.showerror("Lỗi", "Vui lòng nhập tên cầu thủ và tên đội.")
+    def view_teams(self):
+        team_names = [team.team_name for team in self.sport_match.teams]
+        messagebox.showinfo("Danh Sách Đội", "\n".join(team_names) if team_names else "Chưa có đội nào.")
 
     def schedule_match(self):
-        team1_name = self.team_name_entry.get()
-        team2_name = simpledialog.askstring("Nhập Tên Đội 2", "Tên Đội 2:")
-        
-        if team1_name and team2_name:
-            team1 = next((team for team in self.sport_match.teams if team.team_name == team1_name), None)
-            team2 = next((team for team in self.sport_match.teams if team.team_name == team2_name), None)
+        team1_name = self.team1_entry.get()
+        team2_name = self.team2_entry.get()
+        referee_name = self.referee_entry.get()
+        match_date = self.match_date_entry.get()
 
-            if team1 and team2:
-                match_id = len(self.sport_match.matches) + 1  # Tạo ID cho trận đấu
-                referee_name = simpledialog.askstring("Nhập Tên Trọng Tài", "Tên Trọng Tài:")
-                match = Match(match_id, team1, team2, referee_name, datetime.now())
-                self.sport_match.schedule_match(match)
-                messagebox.showinfo("Thành Công", f"Đã lên lịch trận đấu giữa {team1_name} và {team2_name}.")
-                self.update_matches_listbox()
-            else:
-                messagebox.showerror("Lỗi", "Một trong các đội không tồn tại.")
+        if team1_name and team2_name and referee_name and match_date:
+            match = Match(len(self.sport_match.matches) + 1, Team(team1_name), Team(team2_name), referee_name, match_date)
+            self.sport_match.schedule_match(match)
+            messagebox.showinfo("Lên Lịch Trận Đấu", f"Trận đấu giữa {team1_name} và {team2_name} đã được lên lịch.")
+            self.team1_entry.delete(0, tk.END)  # Xóa ô nhập sau khi lên lịch
+            self.team2_entry.delete(0, tk.END)
+            self.referee_entry.delete(0, tk.END)
+            self.match_date_entry.delete(0, tk.END)
         else:
-            messagebox.showerror("Lỗi", "Vui lòng nhập tên cả hai đội.")
+            messagebox.showerror("Lỗi", "Vui lòng điền đầy đủ thông tin.")
 
-    def view_results(self):
-        results = []
-        for match in self.sport_match.matches:
-            if match.result:
-                results.append(f"Trận {match.match_id}: {match.team1.team_name} {match.result['Score'][match.team1.team_name]} - {match.result['Score'][match.team2.team_name]} {match.team2.team_name}")
-        
-        if results:
-            result_string = "\n".join(results)
-            messagebox.showinfo("Kết Quả Trận Đấu", result_string)
-        else:
-            messagebox.showinfo("Kết Quả Trận Đấu", "Chưa có kết quả nào.")
+    def record_result(self):
+        team1_name = self.team1_entry.get()
+        team2_name = self.team2_entry.get()
+        team1_score = self.team1_score_entry.get()
+        team2_score = self.team2_score_entry.get()
 
-    def update_matches_listbox(self):
-        self.matches_listbox.delete(0, tk.END)  # Xóa danh sách hiện tại
-        for match in self.sport_match.matches:
-            if match.result:
-                self.matches_listbox.insert(tk.END, f"Trận {match.match_id}: {match.team1.team_name} vs {match.team2.team_name}, Kết quả: {match.result['Score'][match.team1.team_name]} - {match.result['Score'][match.team2.team_name]}")
+        if team1_name and team2_name and team1_score.isdigit() and team2_score.isdigit():
+            team1_score = int(team1_score)
+            team2_score = int(team2_score)
+
+            match = next((m for m in self.sport_match.matches if m.team1.team_name == team1_name and m.team2.team_name == team2_name), None)
+
+            if match:
+                result = self.sport_match.record_result(match, team1_score, team2_score)
+                messagebox.showinfo("Ghi Kết Quả", f"Kết quả trận đấu: {result['Team 1']} {result['Score'][result['Team 1']]} - {result['Score'][result['Team 2']]} {result['Team 2']}")
+                self.team1_score_entry.delete(0, tk.END)  # Xóa ô nhập sau khi ghi kết quả
+                self.team2_score_entry.delete(0, tk.END)
             else:
-                self.matches_listbox.insert(tk.END, f"Trận {match.match_id}: {match.team1.team_name} vs {match.team2.team_name}, Chưa có kết quả.")
+                messagebox.showerror("Lỗi", "Trận đấu không tồn tại.")
+        else:
+            messagebox.showerror("Lỗi", "Vui lòng nhập tên đội và điểm số hợp lệ.")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = SportMatchApp(root)
     root.mainloop()
+
 
