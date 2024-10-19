@@ -4,79 +4,72 @@ import csv
 import os
 import uuid
 
-# Các lớp đã định nghĩa trước đó
+class SportMatch:
+    def scheduleMatch(self, team1, team2, date):
+        # Lên lịch cho trận đấu
+        pass
+    
+    def recordResult(self, team1Score, team2Score):
+        # Ghi lại kết quả của trận đấu
+        pass
+class Team:
+    def __init__(self, teamName):
+        self.teamName = teamName
+        self.persons = []  # Danh sách các thành viên của đội
+
+    def addPerson(self, person):
+        self.persons.append(person)
+
+    def removePerson(self, person):
+        self.persons.remove(person)
 class Person:
-    def __init__(self, name, age, gender, contact_info):
+    def __init__(self, name, age, gender, contactInfo):
         self.name = name
         self.age = age
         self.gender = gender
-        self.contact_info = contact_info
-
-    def get_details(self):
-        return {
-            "name": self.name,
-            "age": self.age,
-            "gender": self.gender,
-            "contact_info": self.contact_info
-        }
-
+        self.contactInfo = contactInfo
+    
+    def getDetails(self):
+        return f"Name: {self.name}, Age: {self.age}, Gender: {self.gender}, Contact: {self.contactInfo}"
 class Player(Person):
-    def __init__(self, name, age, gender, contact_info, player_number, player_position):
-        super().__init__(name, age, gender, contact_info)
-        self.player_number = player_number
-        self.player_position = player_position
+    def __init__(self, name, age, gender, contactInfo, playerNumber, playerPosition):
+        super().__init__(name, age, gender, contactInfo)
+        self.playerNumber = playerNumber
+        self.playerPosition = playerPosition
 
-    def get_player_info(self):
-        return {
-            "name": self.name,
-            "player_number": self.player_number,
-            "player_position": self.player_position
-        }
-
+    def getPlayerInfo(self):
+        return f"{self.getDetails()}, Number: {self.playerNumber}, Position: {self.playerPosition}"
 class Coach(Person):
-    def __init__(self, name, age, gender, contact_info, coaching_experience, managed_team):
-        super().__init__(name, age, gender, contact_info)
-        self.coaching_experience = coaching_experience
-        self.managed_team = managed_team
+    def __init__(self, name, age, gender, contactInfo, coachingExperience, managedTeam):
+        super().__init__(name, age, gender, contactInfo)
+        self.coachingExperience = coachingExperience
+        self.managedTeam = managedTeam
 
-    def get_coach_info(self):
-        return {
-            "name": self.name,
-            "coaching_experience": self.coaching_experience,
-            "managed_team": self.managed_team
-        }
+    def getCoachInfo(self):
+        return f"{self.getDetails()}, Experience: {self.coachingExperience} years, Managed Team: {self.managedTeam}"
+class Referee(Person):
+    def __init__(self, name, age, gender, contactInfo, experienceYears):
+        super().__init__(name, age, gender, contactInfo)
+        self.experienceYears = experienceYears
 
-class Team:
-    def __init__(self, team_name):
-        self.team_name = team_name
-        self.persons = []
-
-    def add_person(self, person):
-        if person not in self.persons:
-            self.persons.append(person)
-        else:
-            print(f"{person.name} đã tồn tại trong đội {self.team_name}.")
-
-    def remove_person(self, person):
-        if person in self.persons:
-            self.persons.remove(person)
-        else:
-            print(f"{person.name} không tồn tại trong đội {self.team_name}.")
-
-class SportMatch:
-    def __init__(self):
-        self.team1 = None
-        self.team2 = None
-        self.match_date = None
-        self.result = None
-
-    def schedule_match(self, team1, team2, date):
+    def getRefereeInfo(self):
+        return f"{self.getDetails()}, Experience: {self.experienceYears} years"
+class Match(SportMatch):
+    def __init__(self, matchID, team1, team2, referee, matchDate):
+        self.matchID = matchID
         self.team1 = team1
         self.team2 = team2
-        self.match_date = date
+        self.referee = referee
+        self.matchDate = matchDate
+        self.result = None
 
-    def record_result(self, team1_score, team2_score):
-        self.result = (team1_score, team2_score)
+    def scheduleMatch(self, team1, team2, date):
+        # Lên lịch cho trận đấu
+        print(f"Match scheduled between {team1.teamName} and {team2.teamName} on {date}")
+
+    def recordResult(self, team1Score, team2Score):
+        self.result = f"{team1Score} - {team2Score}"
+        print(f"Match result: {team1Score} - {team2Score}")
 
 # Hàm kiểm tra xem file CSV đã có tiêu đề hay chưa
 def check_and_add_header():
@@ -87,7 +80,7 @@ def check_and_add_header():
     if not os.path.exists('matches.csv'):
         with open('matches.csv', 'w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(['Home Team', 'Away Team', 'Refree', 'Stadium', 'Date'])  # Thêm tiêu đề cột
+            writer.writerow([ 'Match ID', 'Home Team', 'Away Team', 'Refree', 'Stadium', 'Date'])  # Thêm tiêu đề cột
     if not os.path.exists('referees.csv'):
         with open('referees.csv', 'w', newline='') as file:
             writer = csv.writer(file)
@@ -887,13 +880,30 @@ def manage_schedule():
 # Hàm xem lịch thi đấu
 def view_schedule():
     try:
-        with open('matches.csv', 'r') as file:
+        # Mở tệp CSV
+        with open('matches.csv', mode='r') as file:
+            reader = csv.DictReader(file)  # Đọc tệp CSV dưới dạng từ điển
+            # Duyệt qua các dòng trong tệp CSV và tạo danh sách lịch thi đấu
+            matches = [
+                f"ID: {row['Match ID']} - {row['Date']} - {row['Home Team']} vs {row['Away Team']}\n"
+                f"Trọng tài: {row['Referee']} - Sân: {row['Stadium']}\n"
+                f"Tỷ số: {row['Team 1 Score']} - {row['Team 2 Score']}"
+                for row in reader
+            ]
+        
+        # In ra lịch thi đấu
+        for match in matches:
+            print(match)
+
+    except KeyError as e:
+        # Nếu có lỗi không tìm thấy khóa trong tệp CSV
+        print(f"KeyError: {e} không tồn tại trong tệp CSV.")
+        
+        # In ra danh sách các tiêu đề cột để kiểm tra
+        with open('matches.csv', mode='r') as file:
             reader = csv.DictReader(file)
-            matches = [f"ID: {row['Match ID']} - {row['Date']} - {row['Home Team']} vs {row['Away Team']}\nTrọng tài: {row['Referee']} - Sân: {row['Stadium']}\nTỷ số: {row['Team 1 Score']} - {row['Team 2 Score']}" for row in reader]
-            match_list = "\n\n".join(matches)
-            messagebox.showinfo("Danh sách trận đấu", match_list or "Không có trận đấu nào!")
-    except FileNotFoundError:
-        messagebox.showerror("Lỗi", "Không tìm thấy file chứa lịch thi đấu.")
+            print(reader.fieldnames)  # In ra tiêu đề các cột
+
 
 
 def add_match():
@@ -1119,6 +1129,3 @@ window.geometry("300x400")
 login_screen()
 
 window.mainloop()
-
-
-
